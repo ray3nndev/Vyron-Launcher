@@ -1,0 +1,5 @@
+Upstream: https://github.com/ZalithLauncher/ZalithLauncher2
+Pinned commit: 36b8ef87f3ce498c2865b483e3b3a0096acbefc7
+Imported by: .github/workflows/import-zalith-source.yml
+Signing keystores and checked-in signing passwords were deliberately excluded.
+This import is source-only; no successful Vyron build is implied.
