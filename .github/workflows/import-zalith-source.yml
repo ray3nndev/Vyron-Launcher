@@ -102,7 +102,10 @@ jobs:
           This import is source-only; no successful Vyron build is implied.
           EOF
 
-          # Remove the temporary nested checkout so it is never committed as a gitlink.\n          rm -rf upstream-temp upstream-source\n\n      - name: Commit imported source
+          # Remove the temporary nested checkout so it is never committed as a gitlink.
+          rm -rf upstream-temp upstream-source
+
+      - name: Commit imported source
         shell: bash
         run: |
           set -euo pipefail
