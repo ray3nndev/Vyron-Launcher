@@ -33,6 +33,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -f IMPORTED_UPSTREAM_REVISION.txt ]]; then
+            echo "Source snapshot already imported; refusing to overwrite Vyron customizations."
+            exit 1
+          fi
           mkdir -p docs licenses
 
           # Preserve upstream attribution and the complete license separately.
