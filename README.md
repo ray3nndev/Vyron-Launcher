@@ -1,35 +1,41 @@
 # Vyron Launcher
 
-A native Android launcher project exploring a Rust-powered Minecraft game runtime while retaining the useful Android launcher experience and customizable touch controls from the Zalith Launcher 2 codebase.
+A native Android launcher project exploring a Rust-powered Minecraft game runtime while retaining the Android launcher experience and customizable touch controls from the Zalith Launcher 2 codebase.
 
 ## Project direction
 
-- Android application layer: Kotlin/Java and the existing Gradle/JDK build toolchain.
-- Game execution: investigate and integrate Horizon's native Rust engine for Android ARM64.
-- Touch controls: preserve/adapt the LayerController layout model, editor, customization, and pointer handling through a dedicated input adapter.
-- Data compatibility: evaluate worlds, resource packs, accounts, and library migration individually.
+- Android application layer: Kotlin/Java and Gradle.
+- Game execution: integrate Horizon's native Rust engine for Android ARM64, subject to Android platform support.
+- Touch controls: preserve the LayerController layout model, editor, customization and pointer handling through a dedicated input adapter.
+- Data compatibility: evaluate worlds, resource packs, accounts and library migration independently.
 
 ## Important scope boundary
 
-This project intends to replace the Minecraft **game runtime** path, not remove Kotlin/Java code used by the Android application or remove Gradle/JDK build tooling.
+Vyron replaces the Minecraft **game runtime** path only. It does not remove Kotlin/Java Android application code or Gradle/JDK build tooling. Some resource-preparation tasks may still require a JDK.
 
-No Horizon integration, Java-runtime removal, input adapter, successful APK build, or device test is claimed at this stage.
+No Horizon integration, runtime removal, input adapter, successful APK build or device test is claimed at this stage.
 
 ## Development status
 
-- [ ] Import and audit the licensed upstream Zalith Launcher 2 source.
-- [ ] Audit Horizon's Android ARM64 engine APIs, build outputs, and runtime requirements.
-- [ ] Define the native engine boundary and lifecycle.
-- [ ] Implement LayerController-to-engine input translation.
+- [x] Create isolated integration branch.
+- [x] Audit Zalith Launcher 2 architecture and LayerController behavior.
+- [x] Audit Horizon native-client Android readiness and define the engine boundary.
+- [ ] Import and build the licensed Zalith Android source snapshot.
+- [ ] Preserve and validate the LayerController editor and touch runtime.
+- [ ] Implement the Android ARM64 Horizon adapter.
 - [ ] Verify world/resource-pack/account compatibility.
 - [ ] Build and test on a physical Android ARM64 device.
 
+See [the upstream integration audit](docs/UPSTREAM_INTEGRATION_AUDIT.md) and [the engine boundary design](docs/ENGINE_BOUNDARY.md).
+
 ## Upstream and licensing
 
-The launcher UI and LayerController work is based on the intended reuse/adaptation of [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2). Before importing or distributing upstream code, preserve its license, copyright notices, source attribution, and applicable GPL-3.0 obligations. Review all bundled components and their individual licenses as well.
+The intended launcher UI and LayerController source comes from [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2). Its inspected upstream revision is `36b8ef87f3ce498c2865b483e3b3a0096acbefc7`.
 
-This is an independent project and is not an official Zalith Launcher, Horizon, Mojang, or Microsoft product.
+Before distributing imported code, preserve the full GPL-3.0 license, all copyright notices and source attribution, audit each bundled component's license, and comply with the upstream README's additional GPLv3 section 7 conditions, including distinct branding and a visible non-official-modification notice. This repository is not an official Zalith Launcher, Horizon, Mojang or Microsoft product.
+
+Do not copy upstream signing keystores, credentials or release secrets.
 
 ## Current state
 
-This repository is a project bootstrap only. The upstream source has not yet been imported.
+This repository contains the project bootstrap and integration design documents. The upstream Android source has **not** yet been imported; there is no Vyron Android app module or APK build yet.
