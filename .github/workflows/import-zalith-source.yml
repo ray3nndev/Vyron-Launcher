@@ -31,7 +31,7 @@ jobs:
         with:
           repository: ZalithLauncher/ZalithLauncher2
           ref: 36b8ef87f3ce498c2865b483e3b3a0096acbefc7
-          path: /tmp/zalith-upstream
+          path: upstream-source
           persist-credentials: false
 
       - name: Import source without upstream release secrets
@@ -41,12 +41,12 @@ jobs:
           mkdir -p docs licenses
 
           # Preserve upstream attribution and the complete license separately.
-          cp /tmp/zalith-upstream/README.md docs/UPSTREAM_README.md
-          cp /tmp/zalith-upstream/LICENSE licenses/ZalithLauncher-GPL-3.0.txt
+          cp upstream-source/README.md docs/UPSTREAM_README.md
+          cp upstream-source/LICENSE licenses/ZalithLauncher-GPL-3.0.txt
 
           # Copy the actual Android project/modules, but not upstream CI/release
           # automation, README collisions, or signing/credential material.
-          rsync -a /tmp/zalith-upstream/ ./ \
+          rsync -a upstream-source/ ./ \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README*' \
