@@ -309,11 +309,14 @@
     <!-- Title of the side panel listing running download and install tasks -->
     <string name="main_task_menu">Task Menu</string>
     <!-- Category on the download page that opens the game version downloads -->
-    <string name="download_category_game">Game</string>
+    <string name="download_category_game">Rust Version</string>
     <!-- Category on the download page for modpacks; also used as a filter label -->
     <string name="download_category_modpack">Modpack</string>
     <!-- Category on the download page for mods; also used as a filter label -->
     <string name="download_category_mod">Mod</string>
+    <string name="download_category_native_mods">Native Mods</string>
+    <string name="download_native_mods_description">Shaders and texture packs for the native Vyron experience.</string>
+    <string name="download_rust_version_coming_soon">Coming soon. The native Rust game runtime is not available yet.</string>
     <!-- Category on the download page for resource packs; also used as a filter label -->
     <string name="download_category_resource_pack">Resource Pack</string>
     <!-- Category on the download page for world saves; also used as a filter label -->
