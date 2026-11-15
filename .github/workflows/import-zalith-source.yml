@@ -31,7 +31,7 @@ jobs:
         with:
           repository: ZalithLauncher/ZalithLauncher2
           ref: 36b8ef87f3ce498c2865b483e3b3a0096acbefc7
-          path: upstream-source
+          path: upstream-temp
           persist-credentials: false
 
       - name: Import source without upstream release secrets
@@ -41,12 +41,12 @@ jobs:
           mkdir -p docs licenses
 
           # Preserve upstream attribution and the complete license separately.
-          cp upstream-source/README.md docs/UPSTREAM_README.md
-          cp upstream-source/LICENSE licenses/ZalithLauncher-GPL-3.0.txt
+          cp upstream-temp/README.md docs/UPSTREAM_README.md
+          cp upstream-temp/LICENSE licenses/ZalithLauncher-GPL-3.0.txt
 
           # Copy the actual Android project/modules, but not upstream CI/release
           # automation, README collisions, or signing/credential material.
-          rsync -a upstream-source/ ./ \
+          rsync -a upstream-temp/ ./ \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README*' \
@@ -102,7 +102,7 @@ jobs:
           This import is source-only; no successful Vyron build is implied.
           EOF
 
-      - name: Commit imported source
+          # Remove the temporary nested checkout so it is never committed as a gitlink.\n          rm -rf upstream-temp upstream-source\n\n      - name: Commit imported source
         shell: bash
         run: |
           set -euo pipefail
