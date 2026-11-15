@@ -69,7 +69,13 @@ jobs:
           targets: aarch64-linux-android
 
       - name: Install cargo-ndk
-        run: cargo install cargo-ndk --version 4.1.2 --locked
+        shell: bash
+        run: |
+          version="4.1.2"
+          curl -fL "https://github.com/bbqsrc/cargo-ndk/releases/download/v${version}/cargo-ndk-x86_64-unknown-linux-gnu-v${version}.tgz" |
+            tar xz -C "$HOME/.cargo/bin" --strip-components=1
+          chmod +x "$HOME/.cargo/bin"/cargo-ndk*
+          cargo ndk --version
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
