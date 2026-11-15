@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
@@ -165,11 +167,8 @@ private fun TabMenu(
 ) {
     val downloadsList = listOf(
         CategoryItem(backScreenViewModel.downloadGameScreen, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.download_category_game) }, R.string.download_category_game),
-        CategoryItem(backScreenViewModel.downloadModPackScreen, { CategoryIcon(R.drawable.ic_package_2_outlined, R.string.download_category_modpack) }, R.string.download_category_modpack),
-        CategoryItem(backScreenViewModel.downloadModScreen, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_mod) }, R.string.download_category_mod, division = true),
-        CategoryItem(backScreenViewModel.downloadResourcePackScreen, { CategoryIcon(R.drawable.ic_format_paint_outlined, R.string.download_category_resource_pack) }, R.string.download_category_resource_pack),
+        CategoryItem(NormalNavKey.NativeMods, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_native_mods) }, R.string.download_category_native_mods, division = true),
         CategoryItem(backScreenViewModel.downloadSavesScreen, { CategoryIcon(R.drawable.ic_public, R.string.download_category_saves) }, R.string.download_category_saves),
-        CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_lightbulb, R.string.download_category_shaders) }, R.string.download_category_shaders),
         CategoryItem(NormalNavKey.SearchId, { CategoryIcon(R.drawable.ic_card, R.string.download_category_by_id) }, R.string.download_category_by_id, division = true),
         CategoryItem(backScreenViewModel.downloadFavoritesScreen, { CategoryIcon(R.drawable.ic_favorite_outlined, R.string.download_category_favorites) }, R.string.download_category_favorites),
     )
@@ -222,6 +221,35 @@ private fun TabMenu(
 }
 
 @Composable
+private fun NativeModsLandingScreen(
+    onShadersClick: () -> Unit,
+    onTexturePacksClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.download_category_native_mods),
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Text(
+            text = stringResource(R.string.download_native_mods_description),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Button(onClick = onShadersClick, modifier = Modifier.fillMaxWidth()) {
+            Text(text = stringResource(R.string.download_category_shaders))
+        }
+        Button(onClick = onTexturePacksClick, modifier = Modifier.fillMaxWidth()) {
+            Text(text = stringResource(R.string.download_category_resource_pack))
+        }
+    }
+}
+
+@Composable
 private fun NavigationUI(
     key: NestedNavKey.Download,
     backScreenViewModel: ScreenBackStackViewModel,
@@ -247,6 +275,12 @@ private fun NavigationUI(
             transitionSpec = rememberTransitionSpec(),
             popTransitionSpec = rememberTransitionSpec(),
             entryProvider = entryProvider {
+                entry<NormalNavKey.NativeMods> {
+                    NativeModsLandingScreen(
+                        onShadersClick = { backStack.navigateOnce(backScreenViewModel.downloadShadersScreen) },
+                        onTexturePacksClick = { backStack.navigateOnce(backScreenViewModel.downloadResourcePackScreen) }
+                    )
+                }
                 entry<NestedNavKey.DownloadGame> { key ->
                     DownloadGameScreen(
                         key = key,
