@@ -1,0 +1,117 @@
+name: Import Zalith source snapshot
+
+on:
+  push:
+    branches:
+      - integration/zalith-ui-shell
+    paths:
+      - .github/workflows/import-zalith-source.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vyron-source-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Vyron integration branch
+        uses: actions/checkout@v4
+        with:
+          ref: integration/zalith-ui-shell
+          fetch-depth: 0
+
+      - name: Check out pinned Zalith source
+        uses: actions/checkout@v4
+        with:
+          repository: ZalithLauncher/ZalithLauncher2
+          ref: 36b8ef87f3ce498c2865b483e3b3a0096acbefc7
+          path: /tmp/zalith-upstream
+          persist-credentials: false
+
+      - name: Import source without upstream release secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs licenses
+
+          # Preserve upstream attribution and the complete license separately.
+          cp /tmp/zalith-upstream/README.md docs/UPSTREAM_README.md
+          cp /tmp/zalith-upstream/LICENSE licenses/ZalithLauncher-GPL-3.0.txt
+
+          # Copy the actual Android project/modules, but not upstream CI/release
+          # automation, README collisions, or signing/credential material.
+          rsync -a /tmp/zalith-upstream/ ./ \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='README*' \
+            --exclude='LICENSE' \
+            --exclude='*.jks' \
+            --exclude='*.keystore' \
+            --exclude='local.properties' \
+            --exclude='.store_password.txt' \
+            --exclude='.key_password.txt' \
+            --exclude='.oauth_client_id.txt' \
+            --exclude='.curseforge_api.txt' \
+            --exclude='build/' \
+            --exclude='.gradle/'
+
+          # Remove any credential/signing files regardless of their location.
+          find . -type f \( -name '*.jks' -o -name '*.keystore' -o \
+            -name '.store_password.txt' -o -name '.key_password.txt' -o \
+            -name '.oauth_client_id.txt' -o -name '.curseforge_api.txt' -o \
+            -name 'local.properties' \) -delete
+          find . -type d \( -name build -o -name .gradle \) -prune -exec rm -rf {} +
+
+          # Replace upstream's checked-in signing passwords with inert values,
+          # and set a distinct Vyron display identity. No signing key is imported.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("ZalithLauncher/gradle.properties")
+          s = p.read_text()
+          replacements = {
+              "launcher_name": "Vyron",
+              "launcher_app_name": "Vyron Launcher",
+              "launcher_short_name": "VYRON",
+              "url_home": "https://github.com/mojahidfx/Vyron-Launcher",
+              "default_store_password": "UNCONFIGURED",
+              "default_key_password": "UNCONFIGURED",
+          }
+          for key, value in replacements.items():
+              pattern = rf"(?m)^{re.escape(key)}=.*$"
+              if re.search(pattern, s):
+                  s = re.sub(pattern, f"{key}={value}", s)
+              else:
+                  s += f"\\n{key}={value}"
+          s = re.sub(r"(?m)^oauth_client_id=.*$", "#oauth_client_id=SET_LOCALLY", s)
+          s = re.sub(r"(?m)^curseforge_api_key=.*$", "#curseforge_api_key=SET_LOCALLY", s)
+          p.write_text(s)
+          PY
+
+          cat > IMPORTED_UPSTREAM_REVISION.txt <<'EOF'
+          Upstream: https://github.com/ZalithLauncher/ZalithLauncher2
+          Pinned commit: 36b8ef87f3ce498c2865b483e3b3a0096acbefc7
+          Imported by: .github/workflows/import-zalith-source.yml
+          Signing keystores and checked-in signing passwords were deliberately excluded.
+          This import is source-only; no successful Vyron build is implied.
+          EOF
+
+      - name: Commit imported source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No source changes to import."
+            exit 0
+          fi
+          git commit -m "chore: import sanitized Zalith Android source snapshot"
+          git push origin HEAD:integration/zalith-ui-shell
