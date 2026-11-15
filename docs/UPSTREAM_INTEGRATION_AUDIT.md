@@ -61,6 +61,21 @@ Do not copy upstream signing keystores, secrets, OAuth credentials or release co
 7. Introduce a narrow `EngineAdapter` boundary and an Android ARM64 Horizon proof of concept.
 8. Connect LayerController events to the engine only after native lifecycle and input semantics are verified.
 
+## Import execution and security checks
+
+The pinned snapshot at `36b8ef87f3ce498c2865b483e3b3a0096acbefc7` was imported by GitHub Actions into `integration/zalith-ui-shell`. The import contains the Android app and reusable modules, including the original `LayerController` editor and `TouchProcessor`.
+
+The upstream app Gradle properties contained checked-in signing password values, and the app module contained references to upstream release/debug keystores. The import workflow deliberately:
+- excludes all `.jks` and `.keystore` files and local credential files;
+- replaces the checked-in signing password values with inert `UNCONFIGURED` placeholders;
+- removes the custom upstream signing-config references so a debug build can use the standard local Android debug keystore;
+- changes the launcher display identity and homepage properties to Vyron;
+- preserves the upstream README as `docs/UPSTREAM_README.md` and the full GPL-3.0 text as `licenses/ZalithLauncher-GPL-3.0.txt`.
+
+The imported source tree was checked: 1,754 files, with no signing keystore or credential-file paths found. This is a path-level check, not a full secret scan of every text/binary asset.
+
 ## Current implementation status
 
-This branch currently contains the integration work plan only. The upstream Android source has **not** yet been imported, no app module exists in this repository, and no Vyron APK has been built or tested.
+The upstream Android source is now imported. The app module and original LayerController source are present. The first Android ARM64 debug build is being checked by the `Vyron Android ARM64 debug build` workflow. No successful APK build or physical-device test is claimed until the workflow and APK are verified.
+
+The Horizon engine adapter remains design-only and has not been integrated.
