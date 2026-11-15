@@ -1,11 +1,6 @@
 name: Import Zalith source snapshot
 
 on:
-  push:
-    branches:
-      - integration/zalith-ui-shell
-    paths:
-      - .github/workflows/import-zalith-source.yml
   workflow_dispatch:
 
 permissions:
