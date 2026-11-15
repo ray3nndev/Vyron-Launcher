@@ -56,7 +56,10 @@ jobs:
           set +o pipefail
           yes | "$SDKMANAGER" --licenses >/dev/null
           set -o pipefail
-          "$SDKMANAGER" --channel=3 --install "platforms;android-37" "build-tools;36.0.0" "ndk;25.2.9519653"
+          "$SDKMANAGER" --channel=3 --install "platforms;android-37.0" "platforms;android-37.2" "build-tools;37.0.0" "ndk;25.2.9519653"
+          if [ ! -e "$ANDROID_HOME/platforms/android-37" ]; then
+            ln -s android-37.0 "$ANDROID_HOME/platforms/android-37"
+          fi
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
 
