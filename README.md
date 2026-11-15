@@ -20,8 +20,9 @@ No Horizon integration, runtime removal, input adapter, successful APK build or 
 - [x] Create isolated integration branch.
 - [x] Audit Zalith Launcher 2 architecture and LayerController behavior.
 - [x] Audit Horizon native-client Android readiness and define the engine boundary.
-- [ ] Import and build the licensed Zalith Android source snapshot.
-- [ ] Preserve and validate the LayerController editor and touch runtime.
+- [x] Import the pinned Zalith Android source snapshot into the integration branch, preserving its license and notices while excluding upstream signing material.
+- [ ] Complete the first Android ARM64 debug build (tracked by the `Vyron Android ARM64 debug build` workflow).
+- [ ] Validate the imported LayerController editor and touch runtime in the built app and on-device.
 - [ ] Implement the Android ARM64 Horizon adapter.
 - [ ] Verify world/resource-pack/account compatibility.
 - [ ] Build and test on a physical Android ARM64 device.
@@ -38,4 +39,4 @@ Do not copy upstream signing keystores, credentials or release secrets.
 
 ## Current state
 
-This repository contains the project bootstrap and integration design documents. The upstream Android source has **not** yet been imported; there is no Vyron Android app module or APK build yet.
+The pinned Zalith Android source snapshot is now imported on `integration/zalith-ui-shell` at Vyron commit `96a975a882237a2a2ce990c87bcfc7798cabc780`. The source import excludes upstream signing keystores and scrubs the checked-in signing password values. The Android app module and LayerController source are present. The first ARM64 debug build is pending; no APK or device test is claimed yet.
