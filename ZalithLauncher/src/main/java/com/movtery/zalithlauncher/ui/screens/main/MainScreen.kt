@@ -214,6 +214,21 @@ fun MainScreen(
                 },
             )
 
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            ) {
+                Text(
+                    text = "Vyron is an unofficial modified version and is not affiliated with Zalith Launcher.",
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
