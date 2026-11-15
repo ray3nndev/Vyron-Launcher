@@ -171,6 +171,11 @@ sealed interface NormalNavKey : TitledNavKey {
         ) : Versions
     }
 
+    /** Native shader and texture-pack hub */
+    @Serializable data object NativeMods : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.download_category_native_mods)
+    }
+
     /** 搜索整合包屏幕 */
     @Serializable data object SearchModPack : NormalNavKey
     /** 搜索模组屏幕 */
