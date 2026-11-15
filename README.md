@@ -39,4 +39,4 @@ Do not copy upstream signing keystores, credentials or release secrets.
 
 ## Current state
 
-The pinned Zalith Android source snapshot is now imported on `integration/zalith-ui-shell` at Vyron commit `96a975a882237a2a2ce990c87bcfc7798cabc780`. The source import excludes upstream signing keystores and scrubs the checked-in signing password values. The Android app module and LayerController source are present. The first ARM64 debug build is pending; no APK or device test is claimed yet.
+The pinned Zalith Android source snapshot is now imported on `integration/zalith-ui-shell` at Vyron commit `96a975a882237a2a2ce990c87bcfc7798cabc780`. The source import excludes upstream signing keystores and scrubs the checked-in signing password values. The Android app module and LayerController source are present. The first ARM64 debug build is currently running in GitHub Actions; no APK or device test is claimed until that run succeeds.
