@@ -1,0 +1,80 @@
+name: Vyron Android ARM64 debug build
+
+on:
+  push:
+    branches:
+      - integration/zalith-ui-shell
+    paths:
+      - 'ZalithLauncher/**'
+      - 'LayerController/**'
+      - 'InputMap/**'
+      - 'PetLib/**'
+      - 'LWJGL/**'
+      - 'Terracotta/**'
+      - 'ColorPicker/**'
+      - 'CardGrid/**'
+      - 'Guide/**'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'gradle/**'
+      - '.github/workflows/android-arm64.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vyron-android-arm64
+  cancel-in-progress: true
+
+jobs:
+  debug-arm64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Vyron
+        uses: actions/checkout@v4
+        with:
+          ref: integration/zalith-ui-shell
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK platform and pinned NDK
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager --install "platforms;android-37" "build-tools;36.0.0" "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
+
+      - name: Set up Rust for Android ARM64
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --version 4.1.2 --locked
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build ARM64 debug APK
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :ZalithLauncher:assembleDebug -Darch=arm64 --stacktrace
+
+      - name: Upload ARM64 debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vyron-debug-arm64
+          path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
