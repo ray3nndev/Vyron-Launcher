@@ -47,7 +47,7 @@ jobs:
           # Copy the actual Android project/modules, but not upstream CI/release
           # automation, README collisions, or signing/credential material.
           rsync -a upstream-temp/ ./ \
-            --exclude='.git/' \
+            --exclude='.git' \
             --exclude='.github/' \
             --exclude='README*' \
             --exclude='LICENSE' \
@@ -117,4 +117,6 @@ jobs:
             exit 0
           fi
           git commit -m "chore: import sanitized Zalith Android source snapshot"
+          git fetch origin integration/zalith-ui-shell
+          git rebase origin/integration/zalith-ui-shell
           git push origin HEAD:integration/zalith-ui-shell
