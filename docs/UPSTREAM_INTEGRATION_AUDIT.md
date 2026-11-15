@@ -68,7 +68,7 @@ The pinned snapshot at `36b8ef87f3ce498c2865b483e3b3a0096acbefc7` was imported b
 The upstream app Gradle properties contained checked-in signing password values, and the app module contained references to upstream release/debug keystores. The import workflow deliberately:
 - excludes all `.jks` and `.keystore` files and local credential files;
 - replaces the checked-in signing password values with inert `UNCONFIGURED` placeholders;
-- removes the custom upstream signing-config references so a debug build can use the standard local Android debug keystore;
+- a follow-up Vyron build patch removes the custom upstream signing-config references so a debug build can use the standard local Android debug keystore;
 - changes the launcher display identity and homepage properties to Vyron;
 - preserves the upstream README as `docs/UPSTREAM_README.md` and the full GPL-3.0 text as `licenses/ZalithLauncher-GPL-3.0.txt`.
 
