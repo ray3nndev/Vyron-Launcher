@@ -50,6 +50,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPositi
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
+import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.TextInputSettingsCard
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 
 @Composable
