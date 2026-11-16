@@ -98,7 +98,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
             return
         }
 
-        val account = AccountsManager.currentAccountFlow.value ?: return
         var errorReported = false
         val handleError: (ErrorViewModel.ThrowableMessage) -> Unit = { message ->
             if (!errorReported) {
@@ -111,14 +110,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             onStart = {
                 taskExecutor.addPhases(
                     listOf(
-                        buildLaunchPhases(
-                            context = context,
-                            version = version,
-                            account = account,
-                            skipAccountRefresh = skipAccountRefresh,
-                            exitActivity = exitActivity,
-                            onError = handleError
-                        )
+                        buildRustLaunchPhase(context)
                     )
                 )
             },
@@ -143,6 +135,21 @@ class GameLaunchFlow(scope: CoroutineScope) {
      */
     fun cancel() {
         taskExecutor.cancel()
+    }
+
+    /**
+     * Starts Starling's native Rust game process. Account sign-in and game-file preparation
+     * belong to Starling; Vyron keeps its launcher process alive behind the game.
+     */
+    private fun buildRustLaunchPhase(context: Context): TaskFlowExecutor.TaskPhase {
+        return buildPhase {
+            addTask(
+                icon = R.drawable.ic_rocket_launch_filled,
+                title = androidText(R.string.main_launch_game)
+            ) { _ ->
+                RustEngineLauncher.launch(context)
+            }
+        }
     }
 
     private fun buildLaunchPhases(

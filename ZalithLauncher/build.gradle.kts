@@ -106,6 +106,15 @@ fun writeComponentAssetManifests(assetsDir: File) {
 }
 
 android {
+    // Starling's Android host (NativeActivity + JNI bridge) is compiled into the
+    // launcher APK; the Rust cdylib is staged by android-arm64.yml.
+    sourceSets {
+        getByName("main") {
+            java.srcDir(rootProject.file("engine/starling/packaging/android/java"))
+            res.srcDir(rootProject.file("engine/starling/packaging/android/res"))
+        }
+    }
+
     namespace = zalithPackageName
     compileSdk {
         version = release(37) {

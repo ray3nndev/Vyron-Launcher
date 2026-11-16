@@ -6,6 +6,8 @@ on:
       - integration/zalith-ui-shell
     paths:
       - 'ZalithLauncher/**'
+      - '.gitmodules'
+      - 'engine/starling/**'
       - 'LayerController/**'
       - 'InputMap/**'
       - 'PetLib/**'
@@ -36,6 +38,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: integration/zalith-ui-shell
+          submodules: recursive
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -56,7 +59,7 @@ jobs:
           set +o pipefail
           yes | "$SDKMANAGER" --licenses >/dev/null
           set -o pipefail
-          "$SDKMANAGER" --channel=3 --install "platforms;android-37.0" "platforms;android-37.2" "build-tools;37.0.0" "ndk;25.2.9519653"
+          "$SDKMANAGER" --channel=3 --install "platforms;android-37.0" "platforms;android-37.2" "build-tools;37.0.0" "ndk;25.2.9519653" "ndk;28.2.13676358"
           if [ ! -e "$ANDROID_HOME/platforms/android-37" ]; then
             ln -s android-37.0 "$ANDROID_HOME/platforms/android-37"
           fi
@@ -68,14 +71,32 @@ jobs:
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
 
+      - name: Pin Rust toolchain for Starling
+        shell: bash
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal
+          rustup default 1.95.0
+          rustup target add aarch64-linux-android
+          rustc --version
+
       - name: Install cargo-ndk
         shell: bash
         run: |
-          version="4.1.2"
-          curl -fL "https://github.com/bbqsrc/cargo-ndk/releases/download/v${version}/cargo-ndk-x86_64-unknown-linux-gnu-v${version}.tgz" |
-            tar xz -C "$HOME/.cargo/bin" --strip-components=1
-          chmod +x "$HOME/.cargo/bin"/cargo-ndk*
+          cargo install cargo-ndk --version 3.5.4 --locked
           cargo ndk --version
+
+      - name: Build and stage Starling native engine
+        working-directory: engine/starling
+        env:
+          CARGO_BUILD_JOBS: "2"
+          RUSTFLAGS: "-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,--build-id=sha1"
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          cargo ndk -t arm64-v8a --platform 26 build --profile quick -p horizon-android
+          test -s target/aarch64-linux-android/quick/libhorizon_android.so
+          install -D target/aarch64-linux-android/quick/libhorizon_android.so \
+            ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
+          file ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5

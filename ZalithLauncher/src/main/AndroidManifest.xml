@@ -22,6 +22,14 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Starling requires Vulkan 1.3. Keep installation possible on unsupported devices,
+         then show a clear compatibility error before starting the native engine. -->
+    <uses-feature
+        android:name="android.hardware.vulkan.version"
+        android:version="0x00400003"
+        android:required="false" />
 
     <application
         android:name=".ZLApplication"
@@ -122,6 +130,64 @@
             android:process=":game"
             android:launchMode="standard"
             android:screenOrientation="sensorLandscape" />
+        <!-- Starling's game runs in :game. Its onDestroy intentionally ends that process,
+             while the Vyron launcher remains alive in the main process. -->
+        <activity
+            android:name="io.github.juanluci.starling.StarlingActivity"
+            android:process=":game"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:resizeableActivity="false"
+            android:theme="@style/Starling.Game"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|density|screenSize|smallestScreenSize|layoutDirection|colorMode|fontWeightAdjustment|grammaticalGender">
+            <meta-data android:name="android.app.lib_name" android:value="horizon_android" />
+            <meta-data android:name="android.app.func_name" android:value="starling_on_create" />
+        </activity>
+
+        <activity
+            android:name="io.github.juanluci.starling.LauncherActivity"
+            android:process=":starling_launcher"
+            android:taskAffinity="${packageName}.starling"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.starling" />
+                <data android:pathPattern=".*\\..*\\.starling" />
+                <data android:pathPattern=".*\\.hmod" />
+                <data android:pathPattern=".*\\..*\\.hmod" />
+                <data android:pathPattern=".*\\.hnmod" />
+                <data android:pathPattern=".*\\..*\\.hnmod" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="io.github.juanluci.starling.WorkService"
+            android:process=":game"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <provider
+            android:name="io.github.juanluci.starling.UpdateProvider"
+            android:authorities="${packageName}.starling.updates"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <activity android:name=".ui.activities.ErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
             android:screenOrientation="sensorLandscape" />
