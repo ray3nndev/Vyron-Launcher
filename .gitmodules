@@ -2,3 +2,8 @@
 	path = engine/starling
 	url = https://github.com/ray3nndev/vyron-starling.git
 	branch = starling
+
+[submodule "engine/horizon-upstream"]
+	path = engine/horizon-upstream
+	url = https://github.com/horizon-rust/horizon.git
+	branch = main
