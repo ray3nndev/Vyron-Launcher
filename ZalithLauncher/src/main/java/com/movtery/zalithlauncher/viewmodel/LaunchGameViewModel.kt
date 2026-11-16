@@ -63,17 +63,21 @@ class LaunchGameViewModel : ViewModel() {
                     },
                     onReloginRequired = { account ->
                         activity.runOnUiThread {
-                            updateOperation(
-                                LaunchGameOperation.AccountRelogin(account, version, quickPlay)
-                            )
+                            version?.let { targetVersion ->
+                                updateOperation(
+                                    LaunchGameOperation.AccountRelogin(account, targetVersion, quickPlay)
+                                )
+                            }
                         }
                         cancel()
                     },
                     onRefreshFailed = { account, th ->
                         activity.runOnUiThread {
-                            updateOperation(
-                                LaunchGameOperation.AccountRefreshFailed(account, th, version, quickPlay)
-                            )
+                            version?.let { targetVersion ->
+                                updateOperation(
+                                    LaunchGameOperation.AccountRefreshFailed(account, th, targetVersion, quickPlay)
+                                )
+                            }
                         }
                         cancel()
                     },
