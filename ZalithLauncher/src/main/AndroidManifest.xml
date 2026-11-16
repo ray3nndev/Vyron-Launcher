@@ -133,7 +133,7 @@
         <!-- Starling's game runs in :game. Its onDestroy intentionally ends that process,
              while the Vyron launcher remains alive in the main process. -->
         <activity
-            android:name="io.github.juanluci.starling.StarlingActivity"
+            android:name="io.github.juanluci.starling.GameActivity"
             android:process=":game"
             android:exported="false"
             android:launchMode="singleTask"
