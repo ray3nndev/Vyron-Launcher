@@ -1,4 +1,4 @@
 [submodule "engine/starling"]
 	path = engine/starling
-	url = https://github.com/starling-client/starling.git
+	url = https://github.com/ray3nndev/vyron-starling.git
 	branch = starling
