@@ -167,6 +167,9 @@ private fun TabMenu(
 ) {
     val downloadsList = listOf(
         CategoryItem(backScreenViewModel.downloadGameScreen, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.download_category_game) }, R.string.download_category_game),
+        CategoryItem(backScreenViewModel.downloadModScreen, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_mod) }, R.string.download_category_mod, division = true),
+        CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_palette, R.string.download_category_shaders) }, R.string.download_category_shaders),
+        CategoryItem(backScreenViewModel.downloadResourcePackScreen, { CategoryIcon(R.drawable.ic_image, R.string.download_category_resource_pack) }, R.string.download_category_resource_pack),
         CategoryItem(NormalNavKey.NativeMods, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_native_mods) }, R.string.download_category_native_mods, division = true),
         CategoryItem(backScreenViewModel.downloadSavesScreen, { CategoryIcon(R.drawable.ic_public, R.string.download_category_saves) }, R.string.download_category_saves),
         CategoryItem(NormalNavKey.SearchId, { CategoryIcon(R.drawable.ic_card, R.string.download_category_by_id) }, R.string.download_category_by_id, division = true),
@@ -221,16 +224,17 @@ private fun TabMenu(
 }
 
 @Composable
-private fun NativeModsLandingScreen(
-    onShadersClick: () -> Unit,
-    onTexturePacksClick: () -> Unit
-) {
+private fun NativeModsLandingScreen() {
+    val items = listOf(
+        R.string.download_category_mod,
+        R.string.download_category_shaders,
+        R.string.download_category_resource_pack
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text(
             text = stringResource(R.string.download_category_native_mods),
@@ -240,11 +244,22 @@ private fun NativeModsLandingScreen(
             text = stringResource(R.string.download_native_mods_description),
             style = MaterialTheme.typography.bodyMedium
         )
-        Button(onClick = onShadersClick, modifier = Modifier.fillMaxWidth()) {
-            Text(text = stringResource(R.string.download_category_shaders))
-        }
-        Button(onClick = onTexturePacksClick, modifier = Modifier.fillMaxWidth()) {
-            Text(text = stringResource(R.string.download_category_resource_pack))
+        items.forEach { item ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = stringResource(item),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.download_rust_version_coming_soon),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -276,10 +291,7 @@ private fun NavigationUI(
             popTransitionSpec = rememberTransitionSpec(),
             entryProvider = entryProvider {
                 entry<NormalNavKey.NativeMods> {
-                    NativeModsLandingScreen(
-                        onShadersClick = { backStack.navigateOnce(backScreenViewModel.downloadShadersScreen) },
-                        onTexturePacksClick = { backStack.navigateOnce(backScreenViewModel.downloadResourcePackScreen) }
-                    )
+                    NativeModsLandingScreen()
                 }
                 entry<NestedNavKey.DownloadGame> { key ->
                     DownloadGameScreen(
