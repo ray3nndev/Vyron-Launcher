@@ -168,8 +168,8 @@ private fun TabMenu(
     val downloadsList = listOf(
         CategoryItem(backScreenViewModel.downloadGameScreen, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.download_category_game) }, R.string.download_category_game),
         CategoryItem(backScreenViewModel.downloadModScreen, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_mod) }, R.string.download_category_mod, division = true),
-        CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_palette, R.string.download_category_shaders) }, R.string.download_category_shaders),
-        CategoryItem(backScreenViewModel.downloadResourcePackScreen, { CategoryIcon(R.drawable.ic_image, R.string.download_category_resource_pack) }, R.string.download_category_resource_pack),
+        CategoryItem(backScreenViewModel.downloadShadersScreen, { CategoryIcon(R.drawable.ic_image_outlined, R.string.download_category_shaders) }, R.string.download_category_shaders),
+        CategoryItem(backScreenViewModel.downloadResourcePackScreen, { CategoryIcon(R.drawable.ic_photo_library_outlined, R.string.download_category_resource_pack) }, R.string.download_category_resource_pack),
         CategoryItem(NormalNavKey.NativeMods, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.download_category_native_mods) }, R.string.download_category_native_mods, division = true),
         CategoryItem(backScreenViewModel.downloadSavesScreen, { CategoryIcon(R.drawable.ic_public, R.string.download_category_saves) }, R.string.download_category_saves),
         CategoryItem(NormalNavKey.SearchId, { CategoryIcon(R.drawable.ic_card, R.string.download_category_by_id) }, R.string.download_category_by_id, division = true),
