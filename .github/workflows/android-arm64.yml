@@ -108,6 +108,15 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Verify Starling Android resources
+        shell: bash
+        run: |
+          test -s engine/starling/packaging/android/res/values/colors.xml
+          for resource in starling_page starling_ink starling_ink_soft starling_rule starling_accent starling_on_accent; do
+            grep -q "name=\"$resource\"" engine/starling/packaging/android/res/values/colors.xml
+          done
+          grep -q 'name="diagnostics_title"' engine/starling/packaging/android/res/values/diagnostics.xml
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
