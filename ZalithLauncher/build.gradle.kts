@@ -107,7 +107,8 @@ fun writeComponentAssetManifests(assetsDir: File) {
 
 android {
     // Starling's Android host (NativeActivity + JNI bridge) is compiled into the
-    // launcher APK; the Rust cdylib is staged by android-arm64.yml.
+    // launcher APK; its Java sources import this module's generated R class. The Rust
+    // cdylib is staged by android-arm64.yml.
     sourceSets {
         getByName("main") {
             java.srcDir(rootProject.file("engine/starling/packaging/android/java"))
