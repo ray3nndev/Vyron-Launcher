@@ -32,7 +32,7 @@ concurrency:
 jobs:
   debug-arm64:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 180
     steps:
       - name: Checkout Vyron
         uses: actions/checkout@v5
@@ -74,10 +74,8 @@ jobs:
       - name: Pin Rust toolchain for Starling
         shell: bash
         run: |
-          rustup toolchain install 1.95.0 --profile minimal
-          rustup default 1.95.0
-          rustup target add aarch64-linux-android
-          rustc --version
+          rustup toolchain install 1.95.0 --profile minimal --target aarch64-linux-android
+          rustup run 1.95.0 rustc --version
 
       - name: Install cargo-ndk
         shell: bash
@@ -89,6 +87,7 @@ jobs:
         working-directory: engine/starling
         env:
           CARGO_BUILD_JOBS: "2"
+          RUSTUP_TOOLCHAIN: "1.95.0"
           RUSTFLAGS: "-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,--build-id=sha1"
         run: |
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"

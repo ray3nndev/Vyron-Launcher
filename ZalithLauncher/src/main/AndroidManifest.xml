@@ -184,7 +184,7 @@
 
         <provider
             android:name="io.github.juanluci.starling.UpdateProvider"
-            android:authorities="${packageName}.starling.updates"
+            android:authorities="${packageName}.updates"
             android:exported="false"
             android:grantUriPermissions="true" />
 
