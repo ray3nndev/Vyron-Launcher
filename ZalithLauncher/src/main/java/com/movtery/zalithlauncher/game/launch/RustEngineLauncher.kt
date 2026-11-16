@@ -12,14 +12,18 @@ import android.content.pm.PackageManager
 import android.os.Build
 
 /**
- * Entry point for the bundled Starling/Horizon native Rust game.
+ * Starts the bundled Starling/Horizon native Rust game through Starling's Android
+ * launcher trampoline. LauncherActivity is the supported entry point: it handles
+ * file hand-offs/restarts and then opens GameActivity. Starting StarlingActivity
+ * directly bypasses that host flow.
  *
- * Starling owns its account sign-in and first-run resource preparation. Its NativeActivity runs
- * in the existing :game process so its deliberate process shutdown cannot kill Vyron's launcher.
+ * Note: this does not yet pass a Vyron-selected Minecraft version/account. Starling's
+ * own first-run resource preparation remains necessary until the version/launch
+ * contract is implemented.
  */
 object RustEngineLauncher {
-    private const val STARLING_ACTIVITY =
-        "io.github.juanluci.starling.StarlingActivity"
+    private const val STARLING_LAUNCHER_ACTIVITY =
+        "io.github.juanluci.starling.LauncherActivity"
     private const val REQUIRED_VULKAN_VERSION = 0x00400003 // Vulkan 1.3
 
     fun launch(context: Context) {
@@ -38,12 +42,12 @@ object RustEngineLauncher {
             )
         }
 
-        val intent = Intent().setClassName(context, STARLING_ACTIVITY).apply {
+        val intent = Intent().setClassName(context, STARLING_LAUNCHER_ACTIVITY).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         if (intent.resolveActivity(packageManager) == null) {
             throw IllegalStateException(
-                "The Starling Rust engine is not packaged in this Vyron build."
+                "The Starling Rust launcher is not packaged in this Vyron build."
             )
         }
         context.startActivity(intent)
