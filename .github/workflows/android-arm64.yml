@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - integration/zalith-ui-shell
+      - work/rust-launch-integration
     paths:
       - 'ZalithLauncher/**'
       - '.gitmodules'
@@ -37,7 +38,7 @@ jobs:
       - name: Checkout Vyron
         uses: actions/checkout@v5
         with:
-          ref: integration/zalith-ui-shell
+          ref: ${{ github.ref }}
           submodules: recursive
 
       - name: Set up JDK 21
