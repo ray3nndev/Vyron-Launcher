@@ -45,7 +45,7 @@ class LaunchGameViewModel : ViewModel() {
 
     fun start(
         activity: Activity,
-        version: Version,
+        version: Version?,
         exitActivity: () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
         quickPlay: QuickPlay?,
@@ -94,15 +94,10 @@ class LaunchGameViewModel : ViewModel() {
     /**
      * 尝试启动游戏
      */
-    fun tryLaunch(
-        version: Version? = null
-    ) {
+    @Suppress("UNUSED_PARAMETER")
+    fun tryLaunch(version: Version? = null) {
         if (launchGameOperation.value == LaunchGameOperation.None && _launchFlow.value == null) {
-            updateOperation(
-                LaunchGameOperation.TryLaunch(
-                    version ?: VersionsManager.currentVersion.value
-                )
-            )
+            updateOperation(LaunchGameOperation.NativeLaunch)
         }
     }
 

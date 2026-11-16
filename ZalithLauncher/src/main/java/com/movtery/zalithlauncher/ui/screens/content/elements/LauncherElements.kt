@@ -127,6 +127,8 @@ sealed interface QuickPlay : Parcelable {
 
 sealed interface LaunchGameOperation {
     data object None : LaunchGameOperation
+    /** Launch the bundled Rust engine without requiring a Zalith Java version or account. */
+    data object NativeLaunch : LaunchGameOperation
     /** 没有安装版本/没有选中有效版本 */
     data object NoVersion : LaunchGameOperation
     /** 版本名称非法时 */
@@ -204,6 +206,19 @@ fun LaunchGameOperation(
 
     when (val operation = launchGameOperation) {
         is LaunchGameOperation.None -> {}
+        is LaunchGameOperation.NativeLaunch -> {
+            LaunchedEffect(Unit) {
+                launchGameViewModel.start(
+                    activity = activity,
+                    version = null,
+                    exitActivity = exitActivity,
+                    submitError = submitError,
+                    quickPlay = null,
+                    skipAccountRefresh = true
+                )
+                launchGameViewModel.updateOperation(LaunchGameOperation.None)
+            }
+        }
         is LaunchGameOperation.NoVersion -> {
             LaunchedEffect(Unit) {
                 eventViewModel.sendToast(androidText(R.string.game_launch_no_version))

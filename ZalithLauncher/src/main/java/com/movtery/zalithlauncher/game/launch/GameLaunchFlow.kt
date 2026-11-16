@@ -83,7 +83,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
      */
     fun launch(
         context: Context,
-        version: Version,
+        version: Version?,
         skipAccountRefresh: Boolean = false,
         exitActivity: () -> Unit,
         onReloginRequired: (Account) -> Unit = {},
@@ -110,7 +110,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             onStart = {
                 taskExecutor.addPhases(
                     listOf(
-                        buildRustLaunchPhase(context)
+                        buildRustLaunchPhase(context, version)
                     )
                 )
             },
@@ -141,12 +141,15 @@ class GameLaunchFlow(scope: CoroutineScope) {
      * Starts Starling's native Rust game process. Account sign-in and game-file preparation
      * belong to Starling; Vyron keeps its launcher process alive behind the game.
      */
-    private fun buildRustLaunchPhase(context: Context): TaskFlowExecutor.TaskPhase {
+    private fun buildRustLaunchPhase(context: Context, version: Version?): TaskFlowExecutor.TaskPhase {
         return buildPhase {
             addTask(
                 icon = R.drawable.ic_rocket_launch_filled,
                 title = androidText(R.string.main_launch_game)
             ) { _ ->
+                if (version?.quickPlaySingle != null) {
+                    throw IllegalStateException("Quick Play is not connected to the Rust engine yet.")
+                }
                 RustEngineLauncher.launch(context)
             }
         }
