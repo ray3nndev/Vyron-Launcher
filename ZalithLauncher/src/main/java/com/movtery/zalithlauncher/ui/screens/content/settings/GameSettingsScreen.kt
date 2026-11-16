@@ -38,14 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.multirt.RuntimesManager
-import com.movtery.zalithlauncher.game.plugin.natives.NativePlugin
-import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
-import com.movtery.zalithlauncher.path.URL_CLOUD_NATIVE_LIB_PLUGINS
-import com.movtery.zalithlauncher.path.URL_GITHUB_NATIVE_LIB_PLUGINS
-import com.movtery.zalithlauncher.setting.GameSettings
-import com.movtery.zalithlauncher.setting.unit.floatRange
-import com.movtery.zalithlauncher.setting.unit.min
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.animated
@@ -53,18 +45,11 @@ import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.IntSliderSettingsCard
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.StringListSettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.TextInputSettingsCard
-import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
 
 @Composable
 fun GameSettingsScreen(
@@ -122,133 +107,6 @@ fun GameSettingsScreen(
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
-                    val runtimes = remember { RuntimesManager.getRuntimes() }
-
-                    if (runtimes.isNotEmpty()) {
-                        ListSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Top,
-                            unit = GameSettings.javaRuntime,
-                            items = RuntimesManager.getRuntimes().filter { it.isCompatible() },
-                            title = stringResource(R.string.settings_game_java_runtime_title),
-                            summary = stringResource(R.string.settings_game_java_runtime_summary),
-                            getItemText = { it.name },
-                            getItemId = { it.name }
-                        )
-                    }
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = if (runtimes.isNotEmpty()) CardPosition.Middle else CardPosition.Top,
-                        unit = GameSettings.autoPickJavaRuntime,
-                        title = stringResource(R.string.settings_game_auto_pick_java_runtime_title),
-                        summary = stringResource(R.string.settings_game_auto_pick_java_runtime_summary)
-                    )
-
-                    val nativePlugins = remember {
-                        NativePluginManager.getPlugins()
-                    }
-
-                    @Composable
-                    fun DLNativeLibsButton() {
-                        IconButton(
-                            onClick = {
-                                eventViewModel.sendDLPlugin(
-                                    githubLink = URL_GITHUB_NATIVE_LIB_PLUGINS,
-                                    cloudDrives = listOf(
-                                        EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                            language = "zh",
-                                            link = URL_CLOUD_NATIVE_LIB_PLUGINS
-                                        )
-                                    )
-                                )
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_download_2_filled),
-                                contentDescription = stringResource(R.string.generic_download)
-                            )
-                        }
-                    }
-                    if (nativePlugins.isNotEmpty()) {
-                        StringListSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Middle,
-                            unit = GameSettings.disableNativeLibPlugins,
-                            items = nativePlugins,
-                            onItemsChange = { value, item ->
-                                if (value) {
-                                    this - item.packageName
-                                } else {
-                                    this + item.packageName
-                                }
-                            },
-                            title = stringResource(R.string.settings_game_native_lib_plugin_title),
-                            summary = stringResource(R.string.settings_game_native_lib_plugin_summary),
-                            getItemID = { it.packageName },
-                            getItemText = { it.displayName },
-                            getItemSummary = { plugin ->
-                                NativePluginSummaryLayout(plugin)
-                            },
-                            getItemCheck = { contains -> !contains },
-                            trailingIcon = {
-                                DLNativeLibsButton()
-                            },
-                        )
-                    } else {
-                        SettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Middle,
-                            title = stringResource(R.string.settings_game_native_lib_plugin_title),
-                            summary = stringResource(R.string.settings_game_native_lib_plugin_summary),
-                            onClick = {},
-                            trailingIcon = {
-                                DLNativeLibsButton()
-                            }
-                        )
-                    }
-
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = GameSettings.ramAllocation,
-                        title = stringResource(R.string.settings_game_java_memory_title),
-                        summary = stringResource(R.string.settings_game_java_memory_summary),
-                        valueRange = GameSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
-                        suffix = "MB",
-                        fineTuningControl = true,
-                        previewContent = {
-                            MemoryPreview(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 2.dp),
-                                preview = (GameSettings.ramAllocation.state ?: GameSettings.ramAllocation.min).toDouble(),
-                                usedText = { usedMemory, totalMemory ->
-                                    stringResource(R.string.settings_game_java_memory_used_text, usedMemory.toInt(), totalMemory.toInt())
-                                },
-                                previewText = { preview ->
-                                    stringResource(R.string.settings_game_java_memory_allocation_text, preview.toInt())
-                                }
-                            )
-                        }
-                    )
-
-                    TextInputSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
-                        unit = GameSettings.jvmArgs,
-                        title = stringResource(R.string.settings_game_jvm_args_title),
-                        summary = stringResource(R.string.settings_game_jvm_args_summary)
-                    )
-                }
-            }
-
-            AnimatedItem { ctx ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animated(ctx)
-                ) {
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
@@ -285,8 +143,6 @@ fun GameSettingsScreen(
 }
 
 
-@Composable
-private fun NativePluginSummaryLayout(plugin: NativePlugin) {
     FlowRow(
         modifier = Modifier.alpha(0.7f),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
