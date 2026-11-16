@@ -97,6 +97,17 @@ jobs:
             ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
           file ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
 
+      # Keep the Android Rust engine as its own artifact. This is the first building
+      # block for Vyron-managed engine builds; it is not yet an in-app downloader.
+      - name: Upload standalone Horizon Android engine
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vyron-horizon-android-arm64-engine
+          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
