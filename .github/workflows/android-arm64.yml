@@ -40,7 +40,17 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
-          submodules: recursive
+          submodules: false
+
+      # Fetch only the legacy compatibility source that Gradle still compiles. Avoid
+      # cloning Vyron's unused Horizon upstream submodule a second time.
+      - name: Checkout legacy Starling fallback source
+        uses: actions/checkout@v5
+        with:
+          repository: ray3nndev/vyron-starling
+          ref: 2bbdf7f04498615fb6712d43f4db11c029d0fbfe
+          path: engine/starling
+          persist-credentials: false
 
       # Pin the Android port separately from the upstream Horizon engine. This keeps
       # Vyron builds reproducible while the Android platform adapter is being developed.
