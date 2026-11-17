@@ -126,8 +126,7 @@ android {
     // Vyron does not import upstream signing keys. Debug uses Android's standard
     // local debug keystore; release signing must be configured privately later.
     defaultConfig {
-        applicationId = zalithPackageName
-        applicationIdSuffix = ".v2"
+        applicationId = "com.ray3nndev.vyron"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode
