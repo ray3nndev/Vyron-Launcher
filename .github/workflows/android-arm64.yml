@@ -8,7 +8,8 @@ on:
     paths:
       - 'ZalithLauncher/**'
       - '.gitmodules'
-      - 'engine/starling/**'
+      - 'engine/starling'
+      - 'engine/horizon-upstream'
       - 'LayerController/**'
       - 'InputMap/**'
       - 'PetLib/**'
@@ -33,7 +34,7 @@ concurrency:
 jobs:
   debug-arm64:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 240
     steps:
       - name: Checkout Vyron
         uses: actions/checkout@v5
@@ -41,13 +42,24 @@ jobs:
           ref: ${{ github.ref }}
           submodules: recursive
 
+      # Pin the Android port separately from the upstream Horizon engine. This keeps
+      # Vyron builds reproducible while the Android platform adapter is being developed.
+      - name: Checkout Horizon Android port
+        uses: actions/checkout@v5
+        with:
+          repository: ray3nndev/horizon-android
+          ref: 18f7eee5feec2d2ae0005cf0901612f22711b552
+          path: horizon-android
+          submodules: recursive
+          persist-credentials: false
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
-      - name: Install Android SDK platform and pinned NDK
+      - name: Install Android SDK platform and pinned NDKs
         shell: bash
         run: |
           export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
@@ -60,11 +72,15 @@ jobs:
           set +o pipefail
           yes | "$SDKMANAGER" --licenses >/dev/null
           set -o pipefail
-          "$SDKMANAGER" --channel=3 --install "platforms;android-37.0" "platforms;android-37.2" "build-tools;37.0.0" "ndk;25.2.9519653" "ndk;28.2.13676358"
+          "$SDKMANAGER" --channel=3 --install \
+            "platforms;android-37.0" "platforms;android-37.2" \
+            "build-tools;37.0.0" \
+            "ndk;25.2.9519653" "ndk;27.2.12479018" "ndk;28.2.13676358"
           if [ ! -e "$ANDROID_HOME/platforms/android-37" ]; then
             ln -s android-37.0 "$ANDROID_HOME/platforms/android-37"
           fi
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          # The Android Gradle module is pinned to this NDK. Native Horizon uses 27.2.
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
 
       - name: Set up Rust for Android ARM64
@@ -72,24 +88,70 @@ jobs:
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
 
-      - name: Pin Rust toolchain for Starling
+      - name: Pin Rust toolchain for legacy Starling fallback
         shell: bash
         run: |
           rustup toolchain install 1.95.0 --profile minimal --target aarch64-linux-android
           rustup run 1.95.0 rustc --version
 
-      - name: Install cargo-ndk
+      - name: Install cargo-ndk for legacy Starling fallback
         shell: bash
         run: |
           cargo install cargo-ndk --version 3.5.4 --locked
           cargo ndk --version
 
-      - name: Build and stage Starling native engine
+      - name: Build the Horizon Rust Android bridge
+        working-directory: horizon-android
+        env:
+          CARGO_BUILD_JOBS: "2"
+          RUSTFLAGS: "-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,--build-id=sha1"
+        shell: bash
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          export CC_aarch64_linux_android="$TOOLCHAIN/aarch64-linux-android24-clang"
+          export CXX_aarch64_linux_android="$TOOLCHAIN/aarch64-linux-android24-clang++"
+          export AR_aarch64_linux_android="$TOOLCHAIN/llvm-ar"
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$TOOLCHAIN/aarch64-linux-android24-clang"
+          echo "$TOOLCHAIN" >> "$GITHUB_PATH"
+
+          bash scripts/apply-engine-patches.sh
+          cargo check --manifest-path engine/horizon-upstream/Cargo.toml \
+            -p horizon-client --lib --target aarch64-linux-android --no-default-features
+          cargo check --manifest-path bridge/Cargo.toml --target aarch64-linux-android
+          cargo build --release --manifest-path bridge/Cargo.toml --target aarch64-linux-android
+
+          LIBRARY="bridge/target/aarch64-linux-android/release/libhorizon_android_bridge.so"
+          test -s "$LIBRARY"
+          file "$LIBRARY"
+          llvm-readelf -h "$LIBRARY"
+          llvm-nm -D --defined-only "$LIBRARY" > "$RUNNER_TEMP/horizon-bridge-symbols.txt"
+          grep -Fq 'Java_com_ray3nndev_vyron_nativebridge_HorizonBridge_nativeConfigure' "$RUNNER_TEMP/horizon-bridge-symbols.txt"
+          grep -Fq 'Java_com_ray3nndev_vyron_nativebridge_HorizonBridge_nativePrepare' "$RUNNER_TEMP/horizon-bridge-symbols.txt"
+          grep -Eq '[[:space:]]android_main$' "$RUNNER_TEMP/horizon-bridge-symbols.txt"
+
+          install -D "$LIBRARY" \
+            ../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android_bridge.so
+          file ../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android_bridge.so
+
+      - name: Upload actual Horizon Android engine
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vyron-horizon-android-arm64-engine
+          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android_bridge.so
+          if-no-files-found: error
+          retention-days: 30
+
+      # Keep the old Starling library only as a temporary compatibility fallback.
+      # The primary native engine artifact above is now built from horizon-android.
+      - name: Build legacy Starling fallback library
         working-directory: engine/starling
         env:
           CARGO_BUILD_JOBS: "2"
           RUSTUP_TOOLCHAIN: "1.95.0"
           RUSTFLAGS: "-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,--build-id=sha1"
+        shell: bash
         run: |
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
           cargo ndk -t arm64-v8a --platform 26 build --profile quick -p horizon-android
@@ -98,18 +160,7 @@ jobs:
             ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
           file ../../ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
 
-      # Keep the Android Rust engine as its own artifact. This is the first building
-      # block for Vyron-managed engine builds; it is not yet an in-app downloader.
-      - name: Upload standalone Horizon Android engine
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vyron-horizon-android-arm64-engine
-          path: ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Verify Starling Android resources
+      - name: Verify legacy Starling Android resources
         shell: bash
         run: |
           test -s engine/starling/packaging/android/res/values/colors.xml
@@ -126,6 +177,10 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew :ZalithLauncher:assembleDebug -Darch=arm64 --stacktrace
+          APK="$(find ZalithLauncher/build/outputs/apk/debug -name '*.apk' -type f | head -n 1)"
+          test -n "$APK"
+          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libhorizon_android_bridge.so'
+          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libhorizon_android.so'
 
       - name: Upload ARM64 debug APK
         if: success()
