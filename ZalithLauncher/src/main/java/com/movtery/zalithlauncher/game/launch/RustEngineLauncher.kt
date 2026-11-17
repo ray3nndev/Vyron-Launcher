@@ -12,18 +12,19 @@ import android.content.pm.PackageManager
 import android.os.Build
 
 /**
- * Starts the bundled Starling/Horizon native Rust game through Starling's Android
- * launcher trampoline. LauncherActivity is the supported entry point: it handles
- * file hand-offs/restarts and then opens GameActivity. Starting StarlingActivity
- * directly bypasses that host flow.
+ * Starts the actual Starling/Horizon NativeActivity game host directly.
  *
- * Note: this does not yet pass a Vyron-selected Minecraft version/account. Starling's
- * own first-run resource preparation remains necessary until the version/launch
- * contract is implemented.
+ * Do not use LauncherActivity here: it is a file-import/setup trampoline running in
+ * a separate process. GameActivity is the NativeActivity whose manifest metadata loads
+ * libhorizon_android.so and calls starling_on_create(), which starts the Rust game loop.
+ *
+ * This is only the native-host launch step. Vyron still needs to provide authenticated
+ * account state and prepared Minecraft 26.3 resources before a clean first-run launch
+ * can be considered complete.
  */
 object RustEngineLauncher {
-    private const val STARLING_LAUNCHER_ACTIVITY =
-        "io.github.juanluci.starling.LauncherActivity"
+    private const val GAME_ACTIVITY =
+        "io.github.juanluci.starling.GameActivity"
     private const val REQUIRED_VULKAN_VERSION = 0x00400003 // Vulkan 1.3
 
     fun launch(context: Context) {
@@ -42,12 +43,12 @@ object RustEngineLauncher {
             )
         }
 
-        val intent = Intent().setClassName(context, STARLING_LAUNCHER_ACTIVITY).apply {
+        val intent = Intent().setClassName(context, GAME_ACTIVITY).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         if (intent.resolveActivity(packageManager) == null) {
             throw IllegalStateException(
-                "The Starling Rust launcher is not packaged in this Vyron build."
+                "The Horizon Rust GameActivity is not packaged in this Vyron build."
             )
         }
         context.startActivity(intent)
